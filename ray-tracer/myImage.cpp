@@ -126,7 +126,7 @@ Uint32 MyImage::perPixel(glm::vec2 coord)
 
 	glm::vec3 center(0.5, 0.5, 0.0);
 
-	glm::vec3 light(0.5, 0.5, -2.0);
+	glm::vec3 light(0.5, 0.5, 2.0);
 
 	glm::vec3 coord_3d(coord, 0.0);
 
@@ -139,11 +139,16 @@ Uint32 MyImage::perPixel(glm::vec2 coord)
 	double c = glm::dot(light - center, light - center) - radius * radius;
 	double ans = b * b - 4 * a * c;
 
+	// Generating color based on normal at hit point
 	if (ans >= 0)
 	{
-		red = 255;
-		green = 0;
-		blue = 0;
+		// Point of intersection - center gives normal vector direction
+		float t = (-b - std::sqrt(ans)) / (2 * a);
+		glm::vec3 normal = glm::normalize(light + (t * rayDir) - center);
+
+		red = 0.5 * (normal.x + 1) * 255.0;
+		green = 0.5 * (normal.y + 1) * 255.0;
+		blue = 0.5 * (normal.z + 1) * 255.0;
 	}
 	else
 	{

@@ -6,6 +6,7 @@
 #include <SDL.h>
 #include <SDL_main.h>
 #include <glm.hpp>
+#include <cmath>
 
 
 class MyImage

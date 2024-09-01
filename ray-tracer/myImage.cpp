@@ -40,7 +40,7 @@ void MyImage::setPixel(const int x, const int y, const double r, const double g,
 void MyImage::display()
 {
 	// initialize tempPixels to 0
-	Uint32 *tempPixels = new Uint32[m_xSize * m_ySize]();
+	uint32_t *tempPixels = new uint32_t[m_xSize * m_ySize]();
 
 	for (int y = 0; y < m_xSize; y++)
 	{
@@ -50,7 +50,9 @@ void MyImage::display()
 			coord.x = static_cast<double>(x) / m_xSize;
 			coord.y = static_cast<double>(y) / m_ySize;
 
-			tempPixels[(y * m_xSize) + x] = perPixel( coord );
+			glm::vec4 color = perPixel(coord);
+			color = glm::clamp(color, glm::vec4(0.0), glm::vec4(1.0));
+			tempPixels[(y * m_xSize) + x] = convertColor(color);
 
 			//tempPixels[(y * m_xSize) + x] = convertColor(m_rChannel.at(x).at(y), m_gChannel.at(x).at(y), m_bChannel.at(x).at(y));
 		}
@@ -58,7 +60,7 @@ void MyImage::display()
 
 	// NULL makes sure that the entire texture is updated
 	// Last param is number of bytes in a row
-	SDL_UpdateTexture(m_pTexture, NULL, tempPixels, m_xSize * sizeof(Uint32));
+	SDL_UpdateTexture(m_pTexture, NULL, tempPixels, m_xSize * sizeof(uint32_t));
 
 	delete[] tempPixels;
 
@@ -102,60 +104,65 @@ void MyImage::initTexture()
 }
 
 
-Uint32 MyImage::convertColor(const double r, const double g, const double b)
+uint32_t MyImage::convertColor(glm::vec4 color)
 {
-	unsigned char r_char = static_cast<unsigned char>(r);
-	unsigned char g_char = static_cast<unsigned char>(g);
-	unsigned char b_char = static_cast<unsigned char>(b);
+	color = glm::clamp(color, glm::vec4(0.0), glm::vec4(1.0));
+
+	uint8_t r = (uint8_t)(color.r * 255.0);
+	uint8_t g = (uint8_t)(color.g * 255.0);
+	uint8_t b = (uint8_t)(color.b * 255.0);
+	uint8_t a = (uint8_t)(color.a * 255.0);
 
 	#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-	Uint32 pixelColor = (r_char << 24) + (g_char << 16) + (b_char << 8) + 0xFF;
+	uint32_t pixelColor = (r << 24) | (g << 16) | (b << 8) | a;
 	#else
-	Uint32 pixelColor = (0xFF << 24) + (r_char << 16) + (g_char << 8) + b_char;
+	uint32_t pixelColor = (a << 24) | (r << 16) | (g << 8) | b;
 	#endif
 
 	return pixelColor;
 }
 
 
-Uint32 MyImage::perPixel(glm::vec2 coord)
+glm::vec4 MyImage::perPixel(glm::vec2 coord)
 {
-	double red, green, blue;
+	glm::vec3 color;
 
 	// Sphere-ray intersection
 
 	glm::vec3 center(0.5, 0.5, 0.0);
 
-	glm::vec3 light(0.5, 0.5, 2.0);
+	glm::vec3 light(1, 0, 6.0);
 
 	glm::vec3 coord_3d(coord, 0.0);
 
-	glm::vec3 rayDir = coord_3d - light;
+	glm::vec3 rayDir = glm::normalize(coord_3d - light);
 
 	double radius = 0.3;
 
 	double a = glm::dot(rayDir, rayDir);
 	double b = 2.0 * glm::dot(rayDir, light - center);
 	double c = glm::dot(light - center, light - center) - radius * radius;
-	double ans = b * b - 4 * a * c;
+	double discriminant = b * b - 4 * a * c;
 
 	// Generating color based on normal at hit point
-	if (ans >= 0)
+	if (discriminant >= 0)
 	{
 		// Point of intersection - center gives normal vector direction
-		float t = (-b - std::sqrt(ans)) / (2 * a);
+		float t = (-b - std::sqrt(discriminant)) / (2 * a);
 		glm::vec3 normal = glm::normalize(light + (t * rayDir) - center);
 
-		red = 0.5 * (normal.x + 1) * 255.0;
-		green = 0.5 * (normal.y + 1) * 255.0;
-		blue = 0.5 * (normal.z + 1) * 255.0;
+		color = 0.5f * (normal + glm::vec3(1));
+
+		// Calculate color based on how much the point is facing the light
+		// get cos of angle between normal and light
+		float cosTheta = glm::max(glm::dot(normal, -rayDir), 0.0f);
+
+		color = cosTheta * glm::vec3(1, 0, 0);
 	}
 	else
 	{
-		red = 255;
-		green = 255;
-		blue = 255;
+		color = glm::vec3(0.0);
 	}
 
-	return convertColor(red, green, blue);
+	return glm::vec4(color, 1);
 }

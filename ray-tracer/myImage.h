@@ -22,10 +22,10 @@ public:
 
 	void display();
 
-	Uint32 perPixel(glm::vec2 coord);
+	glm::vec4 perPixel(glm::vec2 coord);
 
 private:
-	Uint32 convertColor(const double r, const double g, const double b);
+	uint32_t convertColor(glm::vec4 color);
 	void initTexture();
 
 	std::vector<std::vector<double>> m_rChannel;

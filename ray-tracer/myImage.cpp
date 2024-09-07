@@ -125,39 +125,109 @@ uint32_t MyImage::convertColor(glm::vec4 color)
 
 glm::vec4 MyImage::perPixel(glm::vec2 coord)
 {
+	// TODO: Check if hit is behind camera
+	// TODO: Check if camera is "inside" the sphere, i.e., ts are of opposite signs
+	// TODO: Create a loop to check closest hit
+	// Sphere-ray intersection
 	glm::vec3 color;
 
-	// Sphere-ray intersection
-
 	glm::vec3 center(0.5, 0.5, 0.0);
+	glm::vec3 center2(0.7, 0.9, 0.2);
 
-	glm::vec3 light(1, 0, 6.0);
+	glm::vec3 light(0.5, 0.7, 1.0);
 
 	glm::vec3 coord_3d(coord, 0.0);
 
 	glm::vec3 rayDir = glm::normalize(coord_3d - light);
 
 	double radius = 0.3;
+	double radius2 = 0.25;
 
 	double a = glm::dot(rayDir, rayDir);
 	double b = 2.0 * glm::dot(rayDir, light - center);
 	double c = glm::dot(light - center, light - center) - radius * radius;
 	double discriminant = b * b - 4 * a * c;
 
+	double a2 = glm::dot(rayDir, rayDir);
+	double b2 = 2.0 * glm::dot(rayDir, light - center2);
+	double c2 = glm::dot(light - center2, light - center2) - radius2 * radius2;
+	double discriminant2 = b2 * b2 - 4 * a2 * c2;
+
 	// Generating color based on normal at hit point
-	if (discriminant >= 0)
+	if (discriminant >= 0 && discriminant2 < 0)
 	{
 		// Point of intersection - center gives normal vector direction
 		float t = (-b - std::sqrt(discriminant)) / (2 * a);
-		glm::vec3 normal = glm::normalize(light + (t * rayDir) - center);
 
-		color = 0.5f * (normal + glm::vec3(1));
+		if (t > 0)
+		{
+			glm::vec3 normal = glm::normalize(light + (t * rayDir) - center);
 
-		// Calculate color based on how much the point is facing the light
-		// get cos of angle between normal and light
-		float cosTheta = glm::max(glm::dot(normal, -rayDir), 0.0f);
+			color = 0.5f * (normal + glm::vec3(1));
 
-		color = cosTheta * glm::vec3(1, 0, 0);
+			// Calculate color based on how much the point is facing the light
+			// get cos of angle between normal and light
+			float cosTheta = glm::max(glm::dot(normal, -rayDir), 0.0f);
+
+			color = cosTheta * glm::vec3(1, 0, 0);
+		}
+		else
+		{
+			color = glm::vec3(0.0);
+		}
+	}
+	else if (discriminant2 >= 0 && discriminant < 0)
+	{
+		// Point of intersection - center gives normal vector direction
+		float t = (-b2 - std::sqrt(discriminant2)) / (2 * a2);
+
+		if (t > 0)
+		{
+			glm::vec3 normal = glm::normalize(light + (t * rayDir) - center2);
+
+			color = 0.5f * (normal + glm::vec3(1));
+
+			// Calculate color based on how much the point is facing the light
+			// get cos of angle between normal and light
+			float cosTheta = glm::max(glm::dot(normal, -rayDir), 0.0f);
+
+			color = cosTheta * glm::vec3(1, 0, 1);
+		}
+		else
+		{
+			color = glm::vec3(0.0);
+		}
+	}
+	else if (discriminant >= 0 && discriminant2 >= 0)
+	{
+		// Point of intersection - center gives normal vector direction
+		float t = (-b - std::sqrt(discriminant)) / (2 * a);
+		float t2 = (-b2 - std::sqrt(discriminant2)) / (2 * a2);
+
+		if (t < t2)
+		{
+			glm::vec3 normal = glm::normalize(light + (t * rayDir) - center);
+
+			color = 0.5f * (normal + glm::vec3(1));
+
+			// Calculate color based on how much the point is facing the light
+			// get cos of angle between normal and light
+			float cosTheta = glm::max(glm::dot(normal, -rayDir), 0.0f);
+
+			color = cosTheta * glm::vec3(1, 0, 0);
+		}
+		else
+		{
+			glm::vec3 normal = glm::normalize(light + (t2 * rayDir) - center2);
+
+			color = 0.5f * (normal + glm::vec3(1));
+
+			// Calculate color based on how much the point is facing the light
+			// get cos of angle between normal and light
+			float cosTheta = glm::max(glm::dot(normal, -rayDir), 0.0f);
+
+			color = cosTheta * glm::vec3(1, 0, 1);
+		}
 	}
 	else
 	{

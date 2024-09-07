@@ -5,7 +5,7 @@ include_directories(
   "${PROJECT_SOURCE_DIR}/SDL2-2.30.6/include"
 )
 
-add_executable (ray-tracer "ray-tracer.cpp"  "myApp.cpp" "myApp.h" "myImage.h" "myImage.cpp")
+add_executable (ray-tracer "ray-tracer.cpp"  "myApp.cpp" "myApp.h" "myImage.h" "myImage.cpp" "scene.h" "config.h")
 
 target_link_libraries(ray-tracer
 "${PROJECT_SOURCE_DIR}/SDL2-2.30.6/lib/x64/SDL2.lib"

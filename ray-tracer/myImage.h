@@ -1,12 +1,10 @@
 #ifndef MYIMAGE_H
 #define MYIMAGE_H
 
-#include <string>
-#include <vector>
+#include "config.h"
 #include <SDL.h>
 #include <SDL_main.h>
-#include <glm.hpp>
-#include <cmath>
+
 
 
 class MyImage

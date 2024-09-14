@@ -34,9 +34,9 @@ void Renderer::display(const Scene& scene, glm::vec3 camPos)
 	// initialize tempPixels to 0
 	uint32_t *tempPixels = new uint32_t[m_xSize * m_ySize]();
 
-	for (int y = 0; y < m_xSize; y++)
+	for (int y = 0; y < m_ySize; y++)
 	{
-		for (int x = 0; x < m_ySize; x++)
+		for (int x = 0; x < m_xSize; x++)
 		{
 			glm::vec2 coord;
 			coord.x = static_cast<double>(x) / m_xSize;
@@ -119,29 +119,45 @@ glm::vec4 Renderer::perPixel(glm::vec2 coord)
 	glm::vec3 coord_3d(coord, 0.0);
 
 	Ray ray;
-	ray.origin = m_camPos;	
+	ray.origin = m_camPos;
 	ray.direction = glm::normalize(coord_3d - ray.origin);
 
-	Renderer::HitPayload payload = traceRay(ray);
+	glm::vec3 finalColor(0.0f);
+	uint32_t bounces = 2;
+	float multiplier = 1.0f;
 
-	// Return black if we didn't hit anything
-	if (payload.hitDistance < 0.0f)
+	for (uint32_t ii = 0; ii < bounces; ii++)
 	{
-		return glm::vec4(0.0, 0.0f, 0.0f, 1.0f);
+		Renderer::HitPayload payload = traceRay(ray);
+
+		// Return black if we didn't hit anything
+		if (payload.hitDistance < 0.0f)
+		{
+			glm::vec3 skyColor = glm::vec3(0.0f, 0.4f, 0.9f);
+			finalColor += skyColor * multiplier;
+			break;
+		}
+
+		// Calculate color based on how much the point is facing the light
+		// get cos of angle between normal and light
+		glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
+
+		float cosTheta = glm::max(glm::dot(payload.worldNormal, -lightDir), 0.0f);
+		float lightIntensity = glm::max(cosTheta, 0.0f);
+
+		const Sphere& sphere = m_scene->spheres[payload.objectIndex];
+		glm::vec3 sphereColor = sphere.albedo;
+		sphereColor *= lightIntensity;
+
+		finalColor += sphereColor * multiplier;
+		multiplier *= 0.6f;
+
+		// Move ray to bounce from hitPosition
+		ray.origin = payload.worldPosition + payload.worldNormal * 0.001f;
+		ray.direction = glm::reflect(ray.direction, payload.worldNormal);
 	}
 
-	// Calculate color based on how much the point is facing the light
-	// get cos of angle between normal and light
-	glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
-
-	float cosTheta = glm::max(glm::dot(payload.worldNormal, -lightDir), 0.0f);
-	float lightIntensity = glm::max(cosTheta, 0.0f);
-
-	const Sphere& sphere = m_scene->spheres[payload.objectIndex];
-	glm::vec3 sphereColor = sphere.albedo;
-	sphereColor *= lightIntensity;
-
-	return glm::vec4(sphereColor, 1.0f);
+	return glm::vec4(finalColor, 1.0f);
 }
 
 

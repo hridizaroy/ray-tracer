@@ -3,7 +3,7 @@
 
 #include <SDL.h>
 #include <SDL_main.h>
-#include "myImage.h"
+#include "renderer.h"
 
 class MyApp
 {
@@ -22,6 +22,6 @@ private:
     SDL_Window* m_window;
     SDL_Renderer* m_renderer;
 
-    MyImage m_image;
+    Renderer m_image;
 };
 #endif

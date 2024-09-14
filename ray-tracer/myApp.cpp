@@ -25,25 +25,6 @@ bool MyApp::OnInit()
         m_renderer = SDL_CreateRenderer(m_window, -1, 0);
 
         m_image.initialize(WIDTH, HEIGHT, m_renderer);
-
-        // Seed with a real random value, if available
-        std::random_device rd;
-
-        // Initialize the random number generator with a seed
-        std::mt19937 gen(rd());
-
-        std::uniform_int_distribution<> distr(0, 255);
-
-        for (int x = 0; x < WIDTH; x++)
-        {
-            for (int y = 0; y < HEIGHT; y++)
-            {
-                double r = (static_cast<double>(x) / WIDTH) * 255;
-                double g = (static_cast<double>(y) / HEIGHT) * 255;
-                
-                m_image.setPixel(x, y, distr(gen), distr(gen), distr(gen));
-            }
-        }
     }
     else
     {
@@ -96,7 +77,23 @@ void MyApp::OnRender()
     SDL_SetRenderDrawColor(m_renderer, 255, 0, 0, 0);
     SDL_RenderClear(m_renderer);
 
-    m_image.display();
+    Sphere sphere1;
+    sphere1.center = glm::vec3(0.9f, 0.4f, 0.5f);
+    sphere1.radius = 0.3;
+    sphere1.albedo = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    Sphere sphere2;
+    sphere2.center = glm::vec3(0.4f, 0.6f, -1.5f);
+    sphere2.radius = 0.4;
+    sphere2.albedo = glm::vec3(0.0f, 1.0f, 1.0f);
+
+    Scene scene;
+    scene.spheres.push_back(sphere1);
+    scene.spheres.push_back(sphere2);
+
+    glm::vec3 camPos{ 0.5f, 0.5f, 15.0f };
+
+    m_image.display(scene, camPos);
 
     SDL_RenderPresent(m_renderer);
 }

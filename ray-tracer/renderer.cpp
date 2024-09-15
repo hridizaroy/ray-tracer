@@ -1,5 +1,6 @@
 #include "renderer.h"
 #include <random>
+#include <execution>
 
 Renderer::Renderer()
 {
@@ -28,6 +29,19 @@ void Renderer::initialize(const int xSize, const int ySize, SDL_Renderer* pRende
 
 	m_accumulationData = new glm::vec4[xSize * ySize];
 
+	m_imageHorizontalIter.resize(xSize);
+	m_imageVerticalIter.resize(ySize);
+
+	for (int ii = 0; ii < xSize; ii++)
+	{
+		m_imageHorizontalIter[ii] = ii;
+	}
+
+	for (int ii = 0; ii < ySize; ii++)
+	{
+		m_imageVerticalIter[ii] = ii;
+	}
+
 	initTexture();
 }
 
@@ -44,26 +58,30 @@ void Renderer::display(const Scene& scene, glm::vec3 camPos)
 		memset(m_accumulationData, 0, m_xSize * m_ySize * sizeof(glm::vec4));
 	}
 
-	for (int y = 0; y < m_ySize; y++)
-	{
-		for (int x = 0; x < m_xSize; x++)
+	// multithreading
+	std::for_each(std::execution::par, m_imageVerticalIter.begin(), m_imageVerticalIter.end(),
+		[this, tempPixels](uint32_t y)
 		{
-			glm::vec2 coord;
-			coord.x = static_cast<double>(x) / m_xSize;
-			coord.y = static_cast<double>(y) / m_ySize;
+			std::for_each(std::execution::par, m_imageHorizontalIter.begin(), m_imageHorizontalIter.end(),
+				[this, tempPixels, y](uint32_t x)
+				{
+					glm::vec2 coord;
+					coord.x = static_cast<double>(x) / m_xSize;
+					coord.y = static_cast<double>(y) / m_ySize;
 
-			// average out color over multiple frames
-			glm::vec4 color = perPixel(coord);
-			m_accumulationData[y * m_xSize + x] += color;
+					// average out color over multiple frames
+					glm::vec4 color = perPixel(coord);
+					m_accumulationData[y * m_xSize + x] += color;
 
-			glm::vec4 accumulatedColor = m_accumulationData[y * m_xSize + x];
-			accumulatedColor /= (float)m_frameIndex;
+					glm::vec4 accumulatedColor = m_accumulationData[y * m_xSize + x];
+					accumulatedColor /= (float)m_frameIndex;
 
-			accumulatedColor = glm::clamp(accumulatedColor, glm::vec4(0.0), glm::vec4(1.0));
+					accumulatedColor = glm::clamp(accumulatedColor, glm::vec4(0.0), glm::vec4(1.0));
 
-			tempPixels[(y * m_xSize) + x] = convertColor(accumulatedColor);
-		}
-	}
+					tempPixels[(y * m_xSize) + x] = convertColor(accumulatedColor);
+				});
+		});
+
 
 	// NULL makes sure that the entire texture is updated
 	// Last param is number of bytes in a row

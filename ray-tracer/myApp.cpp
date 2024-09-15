@@ -87,20 +87,32 @@ void MyApp::OnRender()
     redSphere.albedo = { 1.0f, 0.0f, 0.0f };
     redSphere.roughness = 0.8f;
 
+    Material& emissiveSphere = scene.materials.emplace_back();
+    emissiveSphere.albedo = { 0.8f, 0.5f, 0.2f };
+    emissiveSphere.roughness = 0.1f;
+    emissiveSphere.emissionColor = emissiveSphere.albedo;
+    emissiveSphere.emissionPower = 2.0f;
+
     // Spheres
     Sphere sphere1;
-    sphere1.center = glm::vec3(0.5f, 0.5f, 0.0f);
-    sphere1.radius = 0.2f;
+    sphere1.center = glm::vec3(0.4f, 0.55f, 0.0f);
+    sphere1.radius = 0.15f;
     sphere1.materialIndex = 0;
 
     Sphere sphere2;
-    sphere2.center = glm::vec3(0.5f, 1.6f, 0.0f);
-    sphere2.radius = 0.9f;
+    sphere2.center = glm::vec3(0.5f, 4.7f, 0.0f);
+    sphere2.radius = 4.0f;
     sphere2.materialIndex = 1;
+
+    Sphere sphere3;
+    sphere3.center = glm::vec3(0.7f, 0.55f, 0.0f);
+    sphere3.radius = 0.14f;
+    sphere3.materialIndex = 2;
 
     
     scene.spheres.push_back(sphere1);
     scene.spheres.push_back(sphere2);
+    scene.spheres.push_back(sphere3);
 
     glm::vec3 camPos{ 0.5f, 0.5f, 5.0f };
 

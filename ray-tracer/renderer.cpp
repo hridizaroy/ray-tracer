@@ -165,9 +165,9 @@ glm::vec4 Renderer::perPixel(glm::vec2 coord)
 	ray.origin = m_camPos;
 	ray.direction = glm::normalize(coord_3d - ray.origin);
 
-	glm::vec3 finalColor(0.0f);
+	glm::vec3 light(0.0f);
 	uint32_t bounces = 5;
-	float multiplier = 1.0f;
+	glm::vec3 contribution(1.0f);
 
 	for (uint32_t ii = 0; ii < bounces; ii++)
 	{
@@ -177,33 +177,32 @@ glm::vec4 Renderer::perPixel(glm::vec2 coord)
 		if (payload.hitDistance < 0.0f)
 		{
 			glm::vec3 skyColor = glm::vec3(0.5f, 0.6f, 0.9f);
-			finalColor += skyColor * multiplier;
+			//light += skyColor * contribution;
 			break;
 		}
 
 		// Calculate color based on how much the point is facing the light
 		// get cos of angle between normal and light
-		glm::vec3 lightDir = glm::normalize(glm::vec3(-1, -1, -1));
-
-		float cosTheta = glm::max(glm::dot(payload.worldNormal, -lightDir), 0.0f);
-		float lightIntensity = glm::max(cosTheta, 0.0f);
 
 		const Sphere& sphere = m_scene->spheres[payload.objectIndex];
 		const Material& material = m_scene->materials[sphere.materialIndex];
 
-		glm::vec3 sphereColor = material.albedo;
-		sphereColor *= lightIntensity;
-
-		finalColor += sphereColor * multiplier;
-		multiplier *= 0.5f;
+		contribution *= material.albedo;
+		light += material.getEmission() + contribution;
 
 		// Move ray to bounce from hitPosition
 		ray.origin = payload.worldPosition + payload.worldNormal * 0.0001f;
+
+		/*
 		ray.direction = glm::reflect(ray.direction,
-			payload.worldNormal + material.roughness * randomVec3(-0.5, 0.5));
+		payload.worldNormal + material.roughness * randomVec3(-0.5, 0.5));
+		*/
+
+		// Choose random direction to bounce to, but bias it towards normal
+		ray.direction = glm::normalize(payload.worldNormal + glm::normalize(randomVec3(-1.0, 1.0)));
 	}
 
-	return glm::vec4(finalColor, 1.0f);
+	return glm::vec4(light, 1.0f);
 }
 
 

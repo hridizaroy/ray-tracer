@@ -15,10 +15,11 @@ struct Sphere
 	glm::vec3 center{ 0.0f };
 	float radius = 0.5f;
 
-	Material mat;
+	uint32_t materialIndex = 0;
 };
 
 struct Scene
 {
 	std::vector<Sphere> spheres;
+	std::vector<Material> materials;
 };

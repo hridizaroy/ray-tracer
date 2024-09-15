@@ -76,17 +76,29 @@ void MyApp::OnRender()
     SDL_SetRenderDrawColor(m_renderer, 255, 0, 0, 0);
     SDL_RenderClear(m_renderer);
 
+    Scene scene;
+
+    // Materials
+    Material& greenSphere = scene.materials.emplace_back();
+    greenSphere.albedo = { 0.0f, 1.0f, 0.0f };
+    greenSphere.roughness = 0.0f;
+
+    Material& redSphere = scene.materials.emplace_back();
+    redSphere.albedo = { 1.0f, 0.0f, 0.0f };
+    redSphere.roughness = 0.1f;
+
+    // Spheres
     Sphere sphere1;
     sphere1.center = glm::vec3(0.5f, 0.5f, 0.0f);
     sphere1.radius = 0.2f;
-    sphere1.mat.albedo = glm::vec3(0.0f, 1.0f, 0.0f);
+    sphere1.materialIndex = 0;
 
     Sphere sphere2;
     sphere2.center = glm::vec3(0.5f, 1.6f, 0.0f);
     sphere2.radius = 0.9f;
-    sphere2.mat.albedo = glm::vec3(1.0f, 0.0f, 0.0f);
+    sphere2.materialIndex = 1;
 
-    Scene scene;
+    
     scene.spheres.push_back(sphere1);
     scene.spheres.push_back(sphere2);
 

@@ -124,17 +124,17 @@ glm::vec4 Renderer::perPixel(glm::vec2 coord)
 	ray.direction = glm::normalize(coord_3d - ray.origin);
 
 	glm::vec3 finalColor(0.0f);
-	uint32_t bounces = 2;
+	uint32_t bounces = 5;
 	float multiplier = 1.0f;
 
 	for (uint32_t ii = 0; ii < bounces; ii++)
 	{
 		Renderer::HitPayload payload = traceRay(ray);
 
-		// Return black if we didn't hit anything
+		// Return sky color if we didn't hit anything
 		if (payload.hitDistance < 0.0f)
 		{
-			glm::vec3 skyColor = glm::vec3(0.0f, 0.4f, 0.9f);
+			glm::vec3 skyColor = glm::vec3(0.5f, 0.6f, 0.9f);
 			finalColor += skyColor * multiplier;
 			break;
 		}
@@ -147,16 +147,18 @@ glm::vec4 Renderer::perPixel(glm::vec2 coord)
 		float lightIntensity = glm::max(cosTheta, 0.0f);
 
 		const Sphere& sphere = m_scene->spheres[payload.objectIndex];
-		glm::vec3 sphereColor = sphere.mat.albedo;
+		const Material& material = m_scene->materials[sphere.materialIndex];
+
+		glm::vec3 sphereColor = material.albedo;
 		sphereColor *= lightIntensity;
 
 		finalColor += sphereColor * multiplier;
-		multiplier *= 0.6f;
+		multiplier *= 0.5f;
 
 		// Move ray to bounce from hitPosition
-		ray.origin = payload.worldPosition + payload.worldNormal * 0.001f;
+		ray.origin = payload.worldPosition + payload.worldNormal * 0.0001f;
 		ray.direction = glm::reflect(ray.direction,
-			payload.worldNormal + sphere.mat.roughness * randomVec3(-0.5, 0.5));
+			payload.worldNormal + material.roughness * randomVec3(-0.5, 0.5));
 	}
 
 	return glm::vec4(finalColor, 1.0f);

@@ -1,4 +1,5 @@
 #include "renderer.h"
+#include <random>
 
 Renderer::Renderer()
 {
@@ -146,7 +147,7 @@ glm::vec4 Renderer::perPixel(glm::vec2 coord)
 		float lightIntensity = glm::max(cosTheta, 0.0f);
 
 		const Sphere& sphere = m_scene->spheres[payload.objectIndex];
-		glm::vec3 sphereColor = sphere.albedo;
+		glm::vec3 sphereColor = sphere.mat.albedo;
 		sphereColor *= lightIntensity;
 
 		finalColor += sphereColor * multiplier;
@@ -154,7 +155,8 @@ glm::vec4 Renderer::perPixel(glm::vec2 coord)
 
 		// Move ray to bounce from hitPosition
 		ray.origin = payload.worldPosition + payload.worldNormal * 0.001f;
-		ray.direction = glm::reflect(ray.direction, payload.worldNormal);
+		ray.direction = glm::reflect(ray.direction,
+			payload.worldNormal + sphere.mat.roughness * randomVec3(-0.5, 0.5));
 	}
 
 	return glm::vec4(finalColor, 1.0f);
@@ -227,4 +229,22 @@ Renderer::HitPayload Renderer::miss(const Ray& ray)
 	Renderer::HitPayload payload;
 	payload.hitDistance = -1.0f;
 	return payload;
+}
+
+
+glm::vec3 Renderer::randomVec3(float min, float max)
+{
+	// Initialize random number generator
+	std::random_device rd;  // Seed for random engine
+	std::mt19937 gen(rd()); // Standard Mersenne Twister engine
+
+	// Define uniform real distribution for the range [min, max]
+	std::uniform_real_distribution<> dis(min, max);
+
+	// Generate random values for x, y, and z
+	float x = dis(gen);
+	float y = dis(gen);
+	float z = dis(gen);
+
+	return glm::vec3(x, y, z);
 }

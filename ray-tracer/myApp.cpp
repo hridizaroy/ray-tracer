@@ -1,5 +1,4 @@
 #include "myApp.h"
-#include <random>
 
 MyApp::MyApp()
 {
@@ -78,20 +77,20 @@ void MyApp::OnRender()
     SDL_RenderClear(m_renderer);
 
     Sphere sphere1;
-    sphere1.center = glm::vec3(0.9f, 0.4f, -1.5f);
-    sphere1.radius = 0.3;
-    sphere1.albedo = glm::vec3(0.0f, 1.0f, 0.0f);
+    sphere1.center = glm::vec3(0.5f, 0.5f, 0.0f);
+    sphere1.radius = 0.2f;
+    sphere1.mat.albedo = glm::vec3(0.0f, 1.0f, 0.0f);
 
     Sphere sphere2;
-    sphere2.center = glm::vec3(0.2f, 0.6f, -1.5f);
-    sphere2.radius = 0.4;
-    sphere2.albedo = glm::vec3(0.0f, 1.0f, 1.0f);
+    sphere2.center = glm::vec3(0.5f, 1.6f, 0.0f);
+    sphere2.radius = 0.9f;
+    sphere2.mat.albedo = glm::vec3(1.0f, 0.0f, 0.0f);
 
     Scene scene;
     scene.spheres.push_back(sphere1);
     scene.spheres.push_back(sphere2);
 
-    glm::vec3 camPos{ 0.5f, 0.8f, 5.0f };
+    glm::vec3 camPos{ 0.5f, 0.5f, 5.0f };
 
     m_image.display(scene, camPos);
 

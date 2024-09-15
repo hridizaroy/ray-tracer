@@ -37,6 +37,8 @@ private:
 	HitPayload traceRay(const Ray& ray);
 	HitPayload closestHit(const Ray& ray, float hitDistance, int objectIndex);
 	HitPayload miss(const Ray& ray);
+
+	glm::vec3 randomVec3(float min, float max);
 	
 	int m_xSize, m_ySize;
 

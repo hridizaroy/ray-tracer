@@ -85,7 +85,7 @@ void MyApp::OnRender()
 
     Material& redSphere = scene.materials.emplace_back();
     redSphere.albedo = { 1.0f, 0.0f, 0.0f };
-    redSphere.roughness = 0.1f;
+    redSphere.roughness = 0.8f;
 
     // Spheres
     Sphere sphere1;

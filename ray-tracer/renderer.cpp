@@ -15,6 +15,8 @@ Renderer::~Renderer()
 	{
 		SDL_DestroyTexture(m_pTexture);
 	}
+
+	delete[] m_accumulationData;
 }
 
 void Renderer::initialize(const int xSize, const int ySize, SDL_Renderer* pRenderer)
@@ -23,6 +25,8 @@ void Renderer::initialize(const int xSize, const int ySize, SDL_Renderer* pRende
 	m_ySize = ySize;
 
 	m_pRenderer = pRenderer;
+
+	m_accumulationData = new glm::vec4[xSize * ySize];
 
 	initTexture();
 }
@@ -35,6 +39,11 @@ void Renderer::display(const Scene& scene, glm::vec3 camPos)
 	// initialize tempPixels to 0
 	uint32_t *tempPixels = new uint32_t[m_xSize * m_ySize]();
 
+	if (m_frameIndex == 1)
+	{
+		memset(m_accumulationData, 0, m_xSize * m_ySize * sizeof(glm::vec4));
+	}
+
 	for (int y = 0; y < m_ySize; y++)
 	{
 		for (int x = 0; x < m_xSize; x++)
@@ -43,10 +52,16 @@ void Renderer::display(const Scene& scene, glm::vec3 camPos)
 			coord.x = static_cast<double>(x) / m_xSize;
 			coord.y = static_cast<double>(y) / m_ySize;
 
+			// average out color over multiple frames
 			glm::vec4 color = perPixel(coord);
+			m_accumulationData[y * m_xSize + x] += color;
 
-			color = glm::clamp(color, glm::vec4(0.0), glm::vec4(1.0));
-			tempPixels[(y * m_xSize) + x] = convertColor(color);
+			glm::vec4 accumulatedColor = m_accumulationData[y * m_xSize + x];
+			accumulatedColor /= (float)m_frameIndex;
+
+			accumulatedColor = glm::clamp(accumulatedColor, glm::vec4(0.0), glm::vec4(1.0));
+
+			tempPixels[(y * m_xSize) + x] = convertColor(accumulatedColor);
 		}
 	}
 
@@ -63,6 +78,15 @@ void Renderer::display(const Scene& scene, glm::vec3 camPos)
 	srcRect.h = m_ySize;
 
 	SDL_RenderCopy(m_pRenderer, m_pTexture, &srcRect, &srcRect);
+
+	if (m_settings.accumulate)
+	{
+		m_frameIndex++;
+	}
+	else
+	{
+		m_frameIndex = 1;
+	}
 }
 
 

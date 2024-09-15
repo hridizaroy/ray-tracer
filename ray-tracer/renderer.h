@@ -12,6 +12,11 @@
 class Renderer
 {
 public:
+	struct Settings
+	{
+		bool accumulate = true;
+	};
+public:
 	Renderer();
 
 	~Renderer();
@@ -45,8 +50,13 @@ private:
 	SDL_Renderer* m_pRenderer;
 	SDL_Texture* m_pTexture;
 
-	const Scene* m_scene;
+	const Scene* m_scene = nullptr;
 	glm::vec3 m_camPos;
+
+	glm::vec4* m_accumulationData = nullptr;
+	uint32_t m_frameIndex = 1;
+
+	Settings m_settings;
 };
 
 #endif
